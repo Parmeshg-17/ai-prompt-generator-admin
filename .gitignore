@@ -1,0 +1,6 @@
+# Admin Panel — AI Prompt Generator
+
+node_modules/
+dist/
+.env
+*.local
