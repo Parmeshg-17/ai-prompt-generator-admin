@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
-import { getSystemPrompts, saveSystemPrompts, SystemPrompts } from '../lib/firebaseService';
+import { getSystemPrompts, saveSystemPrompts } from '../lib/firebaseService';
+import type { SystemPrompts } from '../lib/firebaseService';
 import { FileText, Save, RefreshCw, CheckCircle } from 'lucide-react';
 
 const DEFAULT_APP = `You are an expert Android/iOS developer. Generate a comprehensive, production-ready development prompt for the user's mobile app idea. Include:

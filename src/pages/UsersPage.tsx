@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
-import { getAllUsers, updateUserCredits, AppUser } from '../lib/firebaseService';
+import { getAllUsers, updateUserCredits } from '../lib/firebaseService';
+import type { AppUser } from '../lib/firebaseService';
 import { Users, Search, CreditCard, RefreshCw, CheckCircle, AlertTriangle } from 'lucide-react';
 
 export default function UsersPage() {

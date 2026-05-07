@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
-import { getPricingPlans, savePricingPlans, PricingPlan } from '../lib/firebaseService';
+import { getPricingPlans, savePricingPlans } from '../lib/firebaseService';
+import type { PricingPlan } from '../lib/firebaseService';
 import { CreditCard, Plus, Trash2, Save, Star, CheckCircle } from 'lucide-react';
 
 const DEFAULT_PLANS: PricingPlan[] = [
