@@ -118,7 +118,7 @@ export default function PromptsPage() {
           <div>
             <div className="model-title">AI Model (OpenRouter)</div>
             <div className="model-hint">
-              Model ID from OpenRouter. Examples: google/gemini-2.0-flash-exp:free, openai/gpt-4o-mini, anthropic/claude-3.5-sonnet
+              Model ID from OpenRouter. Reliable free models: meta-llama/llama-3.2-3b-instruct:free, google/gemini-2.0-flash-exp:free, mistralai/mistral-7b-instruct:free
             </div>
           </div>
         </div>
