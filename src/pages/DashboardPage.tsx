@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { getAllUsers, getPricingPlans, getSystemPrompts } from '../lib/firebaseService';
-import { Bot, Users, CreditCard, FileText, TrendingUp } from 'lucide-react';
+import { Sparkles, Users, CreditCard, FileText, TrendingUp, Activity } from 'lucide-react';
 
 interface Stats {
   totalUsers: number;
@@ -13,26 +13,27 @@ export default function DashboardPage() {
   const [stats, setStats] = useState<Stats | null>(null);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    (async () => {
-      const [users, plans, prompts] = await Promise.all([
-        getAllUsers(),
-        getPricingPlans(),
-        getSystemPrompts(),
-      ]);
-      setStats({
-        totalUsers: users.length,
-        totalCredits: users.reduce((s, u) => s + (u.credits || 0), 0),
-        plans: plans.length,
-        promptsConfigured: !!(prompts.appPrompt && prompts.websitePrompt),
-      });
-      setLoading(false);
-    })();
-  }, []);
+  const loadStats = async () => {
+    setLoading(true);
+    const [users, plans, prompts] = await Promise.all([
+      getAllUsers(),
+      getPricingPlans(),
+      getSystemPrompts(),
+    ]);
+    setStats({
+      totalUsers: users.length,
+      totalCredits: users.reduce((s, u) => s + (u.credits || 0), 0),
+      plans: plans.length,
+      promptsConfigured: !!(prompts.appPrompt && prompts.websitePrompt),
+    });
+    setLoading(false);
+  };
+
+  useEffect(() => { loadStats(); }, []);
 
   const cards = [
     { icon: <Users size={24} />, label: 'Total Users', value: stats?.totalUsers ?? '—', color: 'card-blue' },
-    { icon: <TrendingUp size={24} />, label: 'Total Credits in Circulation', value: stats?.totalCredits ?? '—', color: 'card-purple' },
+    { icon: <TrendingUp size={24} />, label: 'Credits in Circulation', value: stats?.totalCredits ?? '—', color: 'card-purple' },
     { icon: <CreditCard size={24} />, label: 'Pricing Plans', value: stats?.plans ?? '—', color: 'card-green' },
     {
       icon: <FileText size={24} />,
@@ -45,11 +46,14 @@ export default function DashboardPage() {
   return (
     <div className="page">
       <div className="page-header">
-        <Bot size={28} className="page-icon" />
+        <Sparkles size={28} className="page-icon" />
         <div>
           <h1 className="page-title">Dashboard</h1>
           <p className="page-sub">Overview of your AI Prompt Generator</p>
         </div>
+        <button className="ghost-btn ml-auto" onClick={loadStats}>
+          <Activity size={15} /> Refresh
+        </button>
       </div>
 
       {loading ? (

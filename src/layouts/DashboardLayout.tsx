@@ -3,7 +3,7 @@ import { NavLink, Outlet, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import {
   Bot, LayoutDashboard, FileText, CreditCard,
-  Users, LogOut, Menu, X, ChevronRight,
+  Users, LogOut, Menu, X, ChevronRight, Sparkles,
 } from 'lucide-react';
 
 const NAV = [
@@ -36,7 +36,7 @@ export default function DashboardLayout() {
       <aside className={`sidebar ${sideOpen ? 'sidebar-open' : 'sidebar-closed'}`}>
         <div className="sidebar-header">
           <div className="logo">
-            <Bot size={24} />
+            <Sparkles size={22} />
             {sideOpen && <span>AI Admin</span>}
           </div>
           <button className="toggle-btn" onClick={() => setSideOpen(!sideOpen)}>

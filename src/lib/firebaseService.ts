@@ -17,13 +17,17 @@ import {
 export interface SystemPrompts {
   appPrompt: string;
   websitePrompt: string;
+  modelId: string;
   updatedAt?: unknown;
 }
 
 export async function getSystemPrompts(): Promise<SystemPrompts> {
   const snap = await getDoc(doc(db, 'config', 'systemPrompts'));
-  if (snap.exists()) return snap.data() as SystemPrompts;
-  return { appPrompt: '', websitePrompt: '' };
+  if (snap.exists()) {
+    const d = snap.data();
+    return { appPrompt: d.appPrompt ?? '', websitePrompt: d.websitePrompt ?? '', modelId: d.modelId ?? '' };
+  }
+  return { appPrompt: '', websitePrompt: '', modelId: '' };
 }
 
 export async function saveSystemPrompts(prompts: Omit<SystemPrompts, 'updatedAt'>) {

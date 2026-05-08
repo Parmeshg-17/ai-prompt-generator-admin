@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { getSystemPrompts, saveSystemPrompts } from '../lib/firebaseService';
 import type { SystemPrompts } from '../lib/firebaseService';
-import { FileText, Save, RefreshCw, CheckCircle } from 'lucide-react';
+import { FileText, Save, RefreshCw, CheckCircle, Cpu, Zap, Loader2 } from 'lucide-react';
 
 const DEFAULT_APP = `You are an expert Android/iOS developer. Generate a comprehensive, production-ready development prompt for the user's mobile app idea. Include:
 - Architecture overview (MVVM/Clean Architecture)
@@ -22,11 +22,13 @@ const DEFAULT_WEBSITE = `You are an expert full-stack web developer. Generate a 
 Make it detailed, structured, and ready to use with an AI coding assistant.`;
 
 export default function PromptsPage() {
-  const [data, setData] = useState<SystemPrompts>({ appPrompt: '', websitePrompt: '' });
+  const [data, setData] = useState<SystemPrompts>({ appPrompt: '', websitePrompt: '', modelId: '' });
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   const [activeTab, setActiveTab] = useState<'app' | 'website'>('app');
+  const [testing, setTesting] = useState(false);
+  const [testResult, setTestResult] = useState<{ ok: boolean; msg: string } | null>(null);
 
   useEffect(() => {
     getSystemPrompts().then((p) => {
@@ -37,7 +39,11 @@ export default function PromptsPage() {
 
   const handleSave = async () => {
     setSaving(true);
-    await saveSystemPrompts({ appPrompt: data.appPrompt, websitePrompt: data.websitePrompt });
+    await saveSystemPrompts({
+      appPrompt: data.appPrompt,
+      websitePrompt: data.websitePrompt,
+      modelId: data.modelId,
+    });
     setSaving(false);
     setSaved(true);
     setTimeout(() => setSaved(false), 3000);
@@ -51,6 +57,42 @@ export default function PromptsPage() {
     }));
   };
 
+  const testModel = async () => {
+    if (!data.modelId.trim()) {
+      setTestResult({ ok: false, msg: 'Please enter a model ID first.' });
+      setTimeout(() => setTestResult(null), 3000);
+      return;
+    }
+    setTesting(true);
+    setTestResult(null);
+    try {
+      const res = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'HTTP-Referer': window.location.origin,
+        },
+        body: JSON.stringify({
+          model: data.modelId.trim(),
+          messages: [{ role: 'user', content: 'Say "Hello" in one word.' }],
+          max_tokens: 10,
+        }),
+      });
+      if (res.ok) {
+        const json = await res.json();
+        const reply = json.choices?.[0]?.message?.content ?? 'No response';
+        setTestResult({ ok: true, msg: `✓ Model responded: "${reply.slice(0, 60)}"` });
+      } else {
+        const err = await res.text();
+        setTestResult({ ok: false, msg: `✗ Error ${res.status}: ${err.slice(0, 80)}` });
+      }
+    } catch (e: unknown) {
+      setTestResult({ ok: false, msg: `✗ ${e instanceof Error ? e.message : 'Connection failed'}` });
+    }
+    setTesting(false);
+    setTimeout(() => setTestResult(null), 5000);
+  };
+
   return (
     <div className="page">
       <div className="page-header">
@@ -61,6 +103,37 @@ export default function PromptsPage() {
         </div>
       </div>
 
+      {/* AI Model Section */}
+      <div className="model-section">
+        <div className="model-header">
+          <Cpu size={18} className="model-icon" />
+          <div>
+            <div className="model-title">AI Model (OpenRouter)</div>
+            <div className="model-hint">
+              Model ID from OpenRouter. Examples: google/gemini-2.0-flash-exp:free, openai/gpt-4o-mini, anthropic/claude-3.5-sonnet
+            </div>
+          </div>
+        </div>
+        <div className="model-input-row">
+          <input
+            className="model-input"
+            value={data.modelId}
+            onChange={(e) => setData((prev) => ({ ...prev, modelId: e.target.value }))}
+            placeholder="e.g. z-ai/glm-4.5-air:free"
+          />
+          <button className="test-btn" onClick={testModel} disabled={testing}>
+            {testing ? <Loader2 size={15} className="spin" /> : <Zap size={15} />}
+            {testing ? 'Testing…' : 'Test Model'}
+          </button>
+        </div>
+        {testResult && (
+          <div className={`test-result ${testResult.ok ? 'test-ok' : 'test-err'}`}>
+            {testResult.msg}
+          </div>
+        )}
+      </div>
+
+      {/* Tabs */}
       <div className="tab-bar">
         <button
           className={`tab-btn ${activeTab === 'app' ? 'tab-active' : ''}`}

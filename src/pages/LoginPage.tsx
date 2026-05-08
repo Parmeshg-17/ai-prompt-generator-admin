@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { Bot, Lock, Mail, Eye, EyeOff } from 'lucide-react';
+import { Sparkles, Lock, Mail, Eye, EyeOff } from 'lucide-react';
 
 export default function LoginPage() {
   const { login } = useAuth();
@@ -27,7 +27,7 @@ export default function LoginPage() {
     <div className="login-bg">
       <div className="login-card">
         <div className="login-icon-wrap">
-          <Bot size={36} color="#fff" />
+          <Sparkles size={32} color="#fff" />
         </div>
         <h1 className="login-title">Admin Panel</h1>
         <p className="login-sub">AI Prompt Generator — Control Center</p>
