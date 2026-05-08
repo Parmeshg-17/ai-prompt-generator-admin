@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { getSystemPrompts, saveSystemPrompts } from '../lib/firebaseService';
 import type { SystemPrompts } from '../lib/firebaseService';
-import { FileText, Save, RefreshCw, CheckCircle, Cpu, Zap, Loader2 } from 'lucide-react';
+import { FileText, Save, RefreshCw, CheckCircle, Cpu, Zap, Loader2, Key, Eye, EyeOff } from 'lucide-react';
 
 const DEFAULT_APP = `You are an expert Android/iOS developer. Generate a comprehensive, production-ready development prompt for the user's mobile app idea. Include:
 - Architecture overview (MVVM/Clean Architecture)
@@ -22,13 +22,14 @@ const DEFAULT_WEBSITE = `You are an expert full-stack web developer. Generate a 
 Make it detailed, structured, and ready to use with an AI coding assistant.`;
 
 export default function PromptsPage() {
-  const [data, setData] = useState<SystemPrompts>({ appPrompt: '', websitePrompt: '', modelId: '' });
+  const [data, setData] = useState<SystemPrompts>({ appPrompt: '', websitePrompt: '', modelId: '', apiKey: '' });
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   const [activeTab, setActiveTab] = useState<'app' | 'website'>('app');
   const [testing, setTesting] = useState(false);
   const [testResult, setTestResult] = useState<{ ok: boolean; msg: string } | null>(null);
+  const [showKey, setShowKey] = useState(false);
 
   useEffect(() => {
     getSystemPrompts().then((p) => {
@@ -43,6 +44,7 @@ export default function PromptsPage() {
       appPrompt: data.appPrompt,
       websitePrompt: data.websitePrompt,
       modelId: data.modelId,
+      apiKey: data.apiKey,
     });
     setSaving(false);
     setSaved(true);
@@ -63,6 +65,11 @@ export default function PromptsPage() {
       setTimeout(() => setTestResult(null), 3000);
       return;
     }
+    if (!data.apiKey.trim()) {
+      setTestResult({ ok: false, msg: 'Please enter an API key first.' });
+      setTimeout(() => setTestResult(null), 3000);
+      return;
+    }
     setTesting(true);
     setTestResult(null);
     try {
@@ -70,6 +77,7 @@ export default function PromptsPage() {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'Authorization': `Bearer ${data.apiKey.trim()}`,
           'HTTP-Referer': window.location.origin,
         },
         body: JSON.stringify({
@@ -81,16 +89,16 @@ export default function PromptsPage() {
       if (res.ok) {
         const json = await res.json();
         const reply = json.choices?.[0]?.message?.content ?? 'No response';
-        setTestResult({ ok: true, msg: `✓ Model responded: "${reply.slice(0, 60)}"` });
+        setTestResult({ ok: true, msg: `✓ Model responded: "${reply.slice(0, 80)}"` });
       } else {
         const err = await res.text();
-        setTestResult({ ok: false, msg: `✗ Error ${res.status}: ${err.slice(0, 80)}` });
+        setTestResult({ ok: false, msg: `✗ Error ${res.status}: ${err.slice(0, 100)}` });
       }
     } catch (e: unknown) {
       setTestResult({ ok: false, msg: `✗ ${e instanceof Error ? e.message : 'Connection failed'}` });
     }
     setTesting(false);
-    setTimeout(() => setTestResult(null), 5000);
+    setTimeout(() => setTestResult(null), 6000);
   };
 
   return (
@@ -103,7 +111,7 @@ export default function PromptsPage() {
         </div>
       </div>
 
-      {/* AI Model Section */}
+      {/* AI Model + API Key Section */}
       <div className="model-section">
         <div className="model-header">
           <Cpu size={18} className="model-icon" />
@@ -126,6 +134,27 @@ export default function PromptsPage() {
             {testing ? 'Testing…' : 'Test Model'}
           </button>
         </div>
+
+        {/* API Key */}
+        <div className="api-key-row">
+          <div className="api-key-label">
+            <Key size={14} />
+            <span>OpenRouter API Key</span>
+          </div>
+          <div className="model-input-row">
+            <input
+              className="model-input"
+              type={showKey ? 'text' : 'password'}
+              value={data.apiKey}
+              onChange={(e) => setData((prev) => ({ ...prev, apiKey: e.target.value }))}
+              placeholder="sk-or-v1-..."
+            />
+            <button className="ghost-btn" onClick={() => setShowKey(!showKey)} type="button">
+              {showKey ? <EyeOff size={15} /> : <Eye size={15} />}
+            </button>
+          </div>
+        </div>
+
         {testResult && (
           <div className={`test-result ${testResult.ok ? 'test-ok' : 'test-err'}`}>
             {testResult.msg}

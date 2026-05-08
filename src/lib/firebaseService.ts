@@ -18,6 +18,7 @@ export interface SystemPrompts {
   appPrompt: string;
   websitePrompt: string;
   modelId: string;
+  apiKey: string;
   updatedAt?: unknown;
 }
 
@@ -25,9 +26,14 @@ export async function getSystemPrompts(): Promise<SystemPrompts> {
   const snap = await getDoc(doc(db, 'config', 'systemPrompts'));
   if (snap.exists()) {
     const d = snap.data();
-    return { appPrompt: d.appPrompt ?? '', websitePrompt: d.websitePrompt ?? '', modelId: d.modelId ?? '' };
+    return {
+      appPrompt: d.appPrompt ?? '',
+      websitePrompt: d.websitePrompt ?? '',
+      modelId: d.modelId ?? '',
+      apiKey: d.apiKey ?? '',
+    };
   }
-  return { appPrompt: '', websitePrompt: '', modelId: '' };
+  return { appPrompt: '', websitePrompt: '', modelId: '', apiKey: '' };
 }
 
 export async function saveSystemPrompts(prompts: Omit<SystemPrompts, 'updatedAt'>) {
